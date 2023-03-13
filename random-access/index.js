@@ -157,35 +157,6 @@ function getTotalRecords() {
 }
 
 
-// Example usage
-(async () => {
-  // Create the database file if it doesn't exist
-  await createDatabaseFile();
-
-  // Write a new student record to the database
-  await writeStudentRecord({ name: 'Rajesh', class: 'B', rollno: 1 });
-  await writeStudentRecord({ name: 'Rohan', class: 'A', rollno: 2 });
-  await writeStudentRecord({ name: 'TanuvNair', class: 'A', rollno: 3 });
-  await writeStudentRecord({ name: 'Manas', class: 'A', rollno: 4 });
-
-  for(let i = 5; i < 10; i++) {
-    await writeStudentRecord({ name: `Xyz${i}`, class: 'B', rollno: i });
-  }
-
-
-  // Read the student record with roll number 1 from the database
-  const record = await readStudentRecord(1);
-  console.log(record); // { name: 'Rajesh', class: 'A', rollno: 1 }
-
-  const record2 = await readStudentRecord(2);
-  console.log(record2); 
-
-  const record3 = await readStudentRecord(3);
-  console.log(record3); 
-
-  await listAllStudents();
-});//();
-
 // Function to prompt the user for input and return the result as a Promise
 function questionAsync(prompt) {
   const rl = readline.createInterface({
