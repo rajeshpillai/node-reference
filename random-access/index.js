@@ -75,6 +75,86 @@ function writeStudentRecord(record) {
   });
 }
 
+// Function to delete a student record from the database
+function deleteStudentRecord(rollno) {
+  return new Promise((resolve, reject) => {
+    // Open the database file in read-write mode
+    const fd = fs.openSync(DATABASE_FILE, 'r+');
+
+    // Calculate the byte offset of the student record in the file
+    const offset = (rollno - 1) * 32;
+
+    // Create an empty buffer to overwrite the student record
+    const buffer = Buffer.alloc(32);
+
+    // Write the empty buffer to the file
+    fs.writeSync(fd, buffer, 0, 32, offset);
+    // Close the database file
+    fs.closeSync(fd);
+    resolve();
+  });
+}
+
+// Function to list all student records in the database
+function listAllStudents() {
+  return new Promise(async (resolve, reject) => {
+    // Open the database file in read mode
+    const fd = fs.openSync(DATABASE_FILE, 'r');
+    // Iterate over all student records in the file and print them to the console
+    const buffer = Buffer.alloc(32);
+
+    const total = await getTotalRecords();
+    console.log(`Total records: ${total}`);
+    for (let i = 0; i < total; i++) {
+      const offset = i * 32;
+      fs.readSync(fd, buffer, 0, 32, offset);
+      const name = buffer.toString('utf8', 0, 16).trim();
+      const classCode = buffer.toString('utf8', 16, 20).trim();
+      const rollNumber = buffer.readInt32LE(20);
+      if (rollNumber == 0) {
+        return;
+      }
+      if (name || classCode || rollNumber) {
+        console.log(`${rollNumber}: ${name} (${classCode})`);
+      } 
+    }
+    // Close the database file
+    fs.closeSync(fd);
+    resolve();
+  });
+}
+
+// Function to get the total number of records in the database
+// Function to get the total number of records in the database
+function getTotalRecords() {
+  return new Promise((resolve, reject) => {
+    // Open the database file in read mode
+    const fd = fs.openSync(DATABASE_FILE, 'r');
+
+    // Iterate over all student records in the file and count the non-empty ones
+    let count = 0;
+    const buffer = Buffer.alloc(32);
+    let bytesRead = 0;
+    do {
+      bytesRead = fs.readSync(fd, buffer, 0, 32, null);
+      const name = buffer.toString('utf8', 0, 16).trim();
+      const classCode = buffer.toString('utf8', 16, 20).trim();
+      const rollNumber = buffer.readInt32LE(20);
+      if (name || classCode || rollNumber) {
+        if (rollNumber != 0) {
+          count++;
+        }
+      }
+    } while (bytesRead === 32);
+
+    // Close the database file
+    fs.closeSync(fd);
+
+    resolve(count);
+  });
+}
+
+
 // Example usage
 (async () => {
   // Create the database file if it doesn't exist
@@ -83,7 +163,13 @@ function writeStudentRecord(record) {
   // Write a new student record to the database
   await writeStudentRecord({ name: 'Rajesh', class: 'B', rollno: 1 });
   await writeStudentRecord({ name: 'Rohan', class: 'A', rollno: 2 });
-  await writeStudentRecord({ name: 'Tanuv Nair', class: 'A', rollno: 3 });
+  await writeStudentRecord({ name: 'TanuvNair', class: 'A', rollno: 3 });
+  await writeStudentRecord({ name: 'Manas', class: 'A', rollno: 4 });
+
+  for(let i = 5; i < 10; i++) {
+    await writeStudentRecord({ name: `Xyz${i}`, class: 'B', rollno: i });
+  }
+
 
   // Read the student record with roll number 1 from the database
   const record = await readStudentRecord(1);
@@ -94,4 +180,6 @@ function writeStudentRecord(record) {
 
   const record3 = await readStudentRecord(3);
   console.log(record3); 
+
+  await listAllStudents();
 })();
