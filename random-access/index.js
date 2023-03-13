@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const readline = require('node:readline');
+
 
 const DATABASE_FILE = path.join(__dirname, 'students.db');
 
@@ -182,4 +184,88 @@ function getTotalRecords() {
   console.log(record3); 
 
   await listAllStudents();
-})();
+});//();
+
+// Function to prompt the user for input and return the result as a Promise
+function questionAsync(prompt) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve) => {
+    rl.question(prompt, (answer) => {
+      rl.close();
+      resolve(answer);
+    });
+  });
+}
+
+// Create student record function
+async function createStudentRecord() {
+  // Prompt the user for the student record details
+  const record = {};
+  record.rollno = parseInt(await questionAsync('Enter roll number: '));
+  record.name = await questionAsync('Enter name: ');
+  record.class = await questionAsync('Enter class: ');
+  
+  // Write the student record to the database
+  await writeStudentRecord(record);
+  
+  console.log('Student record created.');
+}
+
+// Display student record function
+async function displayStudentRecord() {
+  // Prompt the user for the roll number of the student record to display
+  const rollno = parseInt(await questionAsync('Enter roll number: '));
+  
+  // Read the student record from the database
+  const record = await readStudentRecord(rollno);
+  
+  console.log(`Roll Number: ${record.rollno}`);
+  console.log(`Name: ${record.name}`);
+  console.log(`Class: ${record.class}`);
+}
+
+function main() {
+  // Create the readline interface for user input
+  mainMenu();
+  
+  // Main menu function
+  async function mainMenu() {
+    console.log('Welcome to the Student Database!\n');
+    while (true) {
+      const choice = await questionAsync(
+        'Please select an option:\n' +
+        '1. Create student record\n' +
+        '2. Display student by roll number\n' +
+        '3. Delete student record by roll number\n' +
+        '4. List all students\n' +
+        '5. Quit\n'
+      );
+      switch (choice) {
+        case '1':
+          await createStudentRecord();
+          break;
+        case '2':
+          await displayStudentByRollNo();
+          break;
+        case '3':
+          await deleteStudentRecordByRollNo();
+          break;
+        case '4':
+          await listAllStudents();
+          break;
+        case '5':
+          console.log('Goodbye!');
+          process.exit(0);
+        default:
+          console.log('Invalid choice. Please try again.');
+          break;
+      }
+    }
+  }
+}
+
+main();
