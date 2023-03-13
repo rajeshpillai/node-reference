@@ -78,7 +78,7 @@ function writeStudentRecord(record) {
 }
 
 // Function to delete a student record from the database
-function deleteStudentRecord(rollno) {
+function deleteStudentRecordByRollNo(rollno) {
   return new Promise((resolve, reject) => {
     // Open the database file in read-write mode
     const fd = fs.openSync(DATABASE_FILE, 'r+');
@@ -228,7 +228,14 @@ async function displayStudentRecord() {
   console.log(`Class: ${record.class}`);
 }
 
-function main() {
+async function deleteStudentRecord() {
+  // Prompt the user for the roll number of the student record to display
+  const rollno = parseInt(await questionAsync('Enter roll number: '));
+  await deleteStudentRecordByRollNo(rollno);
+}
+
+async function main() {
+  await createDatabaseFile();
   // Create the readline interface for user input
   mainMenu();
   
@@ -249,10 +256,10 @@ function main() {
           await createStudentRecord();
           break;
         case '2':
-          await displayStudentByRollNo();
+          await displayStudentRecord();
           break;
         case '3':
-          await deleteStudentRecordByRollNo();
+          await deleteStudentRecord();
           break;
         case '4':
           await listAllStudents();
